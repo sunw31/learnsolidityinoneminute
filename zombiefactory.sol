@@ -17,6 +17,8 @@ contract ZombieFactory is Ownable {
     // 把同类型的，顺序放一起会节省Gas
         uint32 level;
         uint32 readyTime;
+        uint16 winCount;
+        uint16 lossCount;
     }
 
     // public修饰符 让zombies拥有getter方法但没有setter方法
@@ -34,7 +36,7 @@ contract ZombieFactory is Ownable {
     // msg.sender是合约调用者
     // internal比private多了继承访问权限
     function _createZombie(string _name, uint _dna) internal {
-        uint id = zombies.push(Zombie(_name, _dna, 1, uint32(now + cooldownTime))) - 1;
+        uint id = zombies.push(Zombie(_name, _dna, 1, uint32(now + cooldownTime), 0, 0)) - 1;
         zombieToOwner[id] = msg.sender;
         ownerZombieCount[msg.sender]++;
         NewZombie(id, _name, _dna);
@@ -51,6 +53,7 @@ contract ZombieFactory is Ownable {
     function createRandomZombie(string _name) public {
         require(ownerZombieCount[msg.sender] == 0);
         uint randDna = _generateRandomDna(_name);
+        randDna = randDna - randDna % 100;
         _createZombie(_name, randDna);
     }
 }

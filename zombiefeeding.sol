@@ -20,11 +20,16 @@ contract KittyInterface {
 
 contract ZombieFeeding is ZombieFactory {
 
-  // 从链上获取合约
-  // onlyOwner修饰符限制了external为Ownable继承链下的合约才能调用
+  // 从链上获取合约，且必须是owner
+  // external本来是合约外部调用，但我们限制了必须在Ownable继承链下的合约才能调用
   KittyInterface kittyContract;
   function setKittyContractAddress(address _address) external onlyOwner{
     kittyContract = KittyInterface(_address);
+  }
+
+  modifier ownerOf(uint _zombieId) {
+    require(msg.sender == zombieToOwner[_zombieId]);
+    _;
   }
 
   // storage传引用而不是memory副本
@@ -39,8 +44,7 @@ contract ZombieFeeding is ZombieFactory {
 
   // storage变量将存储在区块链上
   // memory变量只是临时副本修改 
-  function feedAndMultiply(uint _zombieId, uint _targetDna, string species) internal {
-    require(msg.sender == zombieToOwner[_zombieId]);
+  function feedAndMultiply(uint _zombieId, uint _targetDna, string species) internal ownerOf(_zombieId) {
     Zombie storage myZombie = zombies[_zombieId];
     require(_isReady(myZombie));
     _targetDna = _targetDna % dnaModulus;
